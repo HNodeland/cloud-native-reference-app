@@ -61,7 +61,8 @@ func TestRegisterRoutesWithNilDependencies(t *testing.T) {
 	doJSONRequest(t, mux, http.MethodGet, "/todos", nil, http.StatusOK)
 
 	created := doJSONRequest(t, mux, http.MethodPost, "/todos", map[string]any{"title": "from nil deps"}, http.StatusCreated)
-	if created["id"] == "" {
+	id, ok := created["id"].(string)
+	if !ok || id == "" {
 		t.Fatal("expected id")
 	}
 }
