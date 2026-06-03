@@ -54,6 +54,19 @@ func TestValidation(t *testing.T) {
 	}
 }
 
+func TestRegisterRoutesWithNilDependencies(t *testing.T) {
+	mux := http.NewServeMux()
+	RegisterRoutes(mux, nil, nil, nil)
+
+	doJSONRequest(t, mux, http.MethodGet, "/todos", nil, http.StatusOK)
+
+	created := doJSONRequest(t, mux, http.MethodPost, "/todos", map[string]any{"title": "from nil deps"}, http.StatusCreated)
+	id, ok := created["id"].(string)
+	if !ok || id == "" {
+		t.Fatal("expected id")
+	}
+}
+
 func doJSONRequest(t *testing.T, handler http.Handler, method, path string, body any, expectedStatus int) map[string]any {
 	t.Helper()
 
