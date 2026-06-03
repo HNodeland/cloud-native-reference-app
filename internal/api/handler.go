@@ -16,9 +16,19 @@ type handler struct {
 }
 
 func RegisterRoutes(mux *http.ServeMux, s *store.Store, logger *zap.Logger, telemetryMiddleware *telemetry.Instrumentation) {
+	if s == nil {
+		s = store.New()
+	}
+	if logger == nil {
+		logger = zap.NewNop()
+	}
+
 	h := &handler{store: s}
-	todosHandler := http.HandlerFunc(h.route)
-	todosHandler = loggingMiddleware(logger, telemetryMiddleware.HTTPMiddleware(todosHandler))
+	var todosHandler http.Handler = http.HandlerFunc(h.route)
+	if telemetryMiddleware != nil {
+		todosHandler = telemetryMiddleware.HTTPMiddleware(todosHandler)
+	}
+	todosHandler = loggingMiddleware(logger, todosHandler)
 
 	mux.Handle("/todos", todosHandler)
 	mux.Handle("/todos/", todosHandler)
